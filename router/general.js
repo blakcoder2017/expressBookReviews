@@ -33,10 +33,10 @@ public_users.post("/register", async (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
+// public_users.get('/',function (req, res) {
 
-  res.status(200).send(JSON.stringify(books, null, 2));
-});
+//   res.status(200).send(JSON.stringify(books, null, 2));
+// });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
@@ -57,45 +57,80 @@ public_users.get('/isbn/:isbn',function (req, res) {
 
   
  });
+
+ public_users.get ('/', async function getBooksWithAsyncAwait(req,res) {
+  try {
+    const response = await axios.get('http://localhost:8000/');  // Fetch books from the other server
+    const result = {
+      message: "Books using Async/Await:\n",
+      books: response.data
+    };
+    res.status(200).json(result);  // Send the JSON response
+    console.log("Books using Async/Await:\n", response.data);  // Log the books
+  } catch (error) {
+    console.error("Error fetching books (Async/Await):", error.message);
+    res.status(500).json({ message: "Error fetching books" });  // Respond with an error message if fetching fails
+  }
+ });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+public_users.get('/author/:author', async function getBooksByAuthor(req, res) {
   const { author } = req.params;
 
-  // Check if author is provided
+  // Validate the input to ensure author is a string and exists
   if (!author || typeof author !== 'string') {
     return res.status(400).json({ message: "Invalid or missing author name" });
   }
 
-  // Obtain all the book objects using Object.values()
-  const booksByAuthor = Object.values(books).filter((book) => book.author.toLowerCase() === author.toLowerCase());
+  try {
+    // Filter the books by author from the local books data
+    const booksByAuthor = Object.values(books).filter((book) =>
+      book.author.toLowerCase() === author.toLowerCase()
+    );
 
-  if (booksByAuthor.length > 0) {
-    return res.status(200).json(booksByAuthor);
-  } else {
-    return res.status(404).json({ message: "No books found for this author" });
+    // If books are found for the author, send the response
+    if (booksByAuthor.length > 0) {
+      console.log("Books by Author Async-awaits:", booksByAuthor);
+      return res.status(200).json(booksByAuthor);
+    } else {
+      return res.status(404).json({ message: "No books found by this author" });
+    }
+  } catch (error) {
+    // Handle any errors
+    console.error("Error fetching books by author:", error.message);
+    return res.status(500).json({ message: "Error fetching books by author" });
   }
-
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+public_users.get('/title/:title', async function getBooksByTitle(req, res) {
   const { title } = req.params;
 
-  // Check if title is provided
+  // Validate the input to ensure title is a string and exists
   if (!title || typeof title !== 'string') {
     return res.status(400).json({ message: "Invalid or missing title" });
   }
 
-  // Obtain all the book objects using Object.values()
-  const booksByTitle = Object.values(books).filter((book) => book.title.toLowerCase() === title.toLowerCase());
+  try {
+    // Filter the books by title from the local books data
+    const booksByTitle = Object.values(books).filter((book) =>
+      book.title.toLowerCase() === title.toLowerCase()
+    );
 
-  if (booksByTitle.length > 0) {
-    return res.status(200).json(booksByTitle);
-  } else {
-    return res.status(404).json({ message: "No books found with this title" });
+    // If books are found for the title, send the response
+    if (booksByTitle.length > 0) {
+      console.log("Books by Title Async-await:", booksByTitle);
+      return res.status(200).json(booksByTitle);
+    } else {
+      return res.status(404).json({ message: "No books found with this title" });
+    }
+  } catch (error) {
+    // Handle any errors
+    console.error("Error fetching books by title:", error.message);
+    return res.status(500).json({ message: "Error fetching books by title" });
   }
 });
+
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
